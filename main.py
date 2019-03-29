@@ -12,6 +12,7 @@ arg = argparse.ArgumentParser()
 
 arg.add_argument('-i', '--image', required=True, help='tracking image path')
 arg.add_argument('-v', '--video', required=False, help='video path')
+arg.add_argument('-o', '--output', required=False, help='output video path')
 
 args = vars(arg.parse_args())
 
@@ -24,6 +25,10 @@ if args['video'] != 'None':
 
 cap = cv.VideoCapture(path)
 
+frame_width = int(cap.get(3))
+frame_height = int(cap.get(4))
+
+out = cv.VideoWriter(args['output'], cv.VideoWriter_fourcc('M', 'J', 'P', 'G'), 10, (frame_width, frame_height))
 
 sift = cv.xfeatures2d.SIFT_create()
 kp_img, desk_img = sift.detectAndCompute(img, None)
@@ -34,7 +39,6 @@ flann = cv.FlannBasedMatcher(index_params, search_params)
 
 while True:
     _, frame = cap.read()
-    cv.imshow('im', frame)
 
     grayframe = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
     kp_grayframe, desk_grayframe = sift.detectAndCompute(grayframe, None)
@@ -54,6 +58,7 @@ while True:
     # cv.namedWindow('Image', cv.WINDOW_NORMAL)
 
     # hompgraphy
+
     if len(good) > 10:
         qr_pts = np.float32([kp_img[m.queryIdx].pt for m in good]).reshape(-1, 1, 2)
         tr_pts = np.float32([kp_grayframe[m.trainIdx].pt for m in good]).reshape(-1, 1, 2)
@@ -66,9 +71,13 @@ while True:
         dst = cv.perspectiveTransform(pts, mat)
 
         homo = cv.polylines(frame, [np.int32(dst)], True, (255, 0, 0), 3)
-        cv.imshow('Video_cap', homo)
+        frame = homo
     else:
-        cv.imshow('Video_cap', grayframe)
+        frame = grayframe
+
+    cv.imshow('Video_cap', frame)
+    if args['output'] != None:
+        out.write(frame)
 
     key = cv.waitKey(1)
 
@@ -76,4 +85,5 @@ while True:
         break
 
 cap.release()
+out.release()
 cv.destroyAllWindows()
