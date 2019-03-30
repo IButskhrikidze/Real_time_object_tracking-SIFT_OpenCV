@@ -1,19 +1,18 @@
 import cv2 as cv
 import numpy as np
 import argparse
+import time
 
-cv_version = cv.__version__
-
-if cv_version[0] == '4':
+#this programm works only for opencv3
+(major_ver, minor_ver, subminor_ver) = (cv2.__version__).split('.')
+if major_ver != '4':
     print('please install opencv3 and then run program')
     exit(0)
 
 arg = argparse.ArgumentParser()
-
-arg.add_argument('-i', '--image', required=True, help='tracking image path')
+arg.add_argument('-i', '--image', required=False, help='tracking image path')
 arg.add_argument('-v', '--video', required=False, help='video path')
 arg.add_argument('-o', '--output', required=False, help='output video path')
-
 args = vars(arg.parse_args())
 
 img = cv.imread(args['image'], cv.IMREAD_GRAYSCALE)
@@ -25,12 +24,27 @@ if args['video'] != None:
 
 cap = cv.VideoCapture(path)
 
-frame_width = int(cap.get(3))
-frame_height = int(cap.get(4))
-
+#create video writer
 if args['output'] != None:
-    out = cv.VideoWriter(args['output'], cv.VideoWriter_fourcc('M', 'J', 'P', 'G'), 5, (frame_width, frame_height))
+    frame_width = int(cap.get(3))
+    frame_height = int(cap.get(4))
+    
+    #detect frames per second
+    fps = cap.get(cv.CAP_PROP_FPS)
+    if args['video'] == None:
+        num_frames = 50
+        start = time.time()
+        
+        for i in range(0, num_frames):
+            ret, frame = cap.read()
+        
+        end = time.time()
 
+        seconds = end - start
+        fps = num_frames // seconds
+    out = cv.VideoWriter(args['output'], cv.VideoWriter_fourcc('M', 'J', 'P', 'G'), fps, (frame_width, frame_height))
+
+#create sift and detect key points and descriptions
 sift = cv.xfeatures2d.SIFT_create()
 kp_img, desk_img = sift.detectAndCompute(img, None)
 
@@ -54,9 +68,8 @@ while True:
         if m.distance < 0.6 * n.distance:
             good.append(m)
 
-# hompgraphy
-
-    if len(good) > 10:
+    #hompgraphy
+    if len(good) > 20:
         qr_pts = np.float32([kp_img[m.queryIdx].pt for m in good]).reshape(-1, 1, 2)
         tr_pts = np.float32([kp_grayframe[m.trainIdx].pt for m in good]).reshape(-1, 1, 2)
     
@@ -71,13 +84,15 @@ while True:
         frame = homo
     else:
         frame = grayframe
-    
+
     cv.imshow('Video_cap', frame)
+
+    #write frame in video
     if args['output'] != None:
         out.write(frame)
-    
-    key = cv.waitKey(1)
 
+    #click any key to exit program
+    key = cv.waitKey(1)
     if key > 1:
         break
 
