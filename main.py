@@ -42,7 +42,6 @@ if args['output'] != None:
 
         seconds = end - start
         fps = num_frames // seconds
-    print(fps)
     out = cv.VideoWriter(args['output'], cv.VideoWriter_fourcc('M', 'J', 'P', 'G'), fps, (frame_width, frame_height))
 
 #create sift and detect key points and descriptions
