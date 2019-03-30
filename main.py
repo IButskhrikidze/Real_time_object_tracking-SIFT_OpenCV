@@ -20,7 +20,7 @@ img = cv.imread(args['image'], cv.IMREAD_GRAYSCALE)
 
 path = 0
 
-if args['video'] != 'None':
+if args['video'] != None:
     path = args['video']
 
 cap = cv.VideoCapture(path)
@@ -28,7 +28,8 @@ cap = cv.VideoCapture(path)
 frame_width = int(cap.get(3))
 frame_height = int(cap.get(4))
 
-out = cv.VideoWriter(args['output'], cv.VideoWriter_fourcc('M', 'J', 'P', 'G'), 10, (frame_width, frame_height))
+if args['output'] != None:
+    out = cv.VideoWriter(args['output'], cv.VideoWriter_fourcc('M', 'J', 'P', 'G'), 5, (frame_width, frame_height))
 
 sift = cv.xfeatures2d.SIFT_create()
 kp_img, desk_img = sift.detectAndCompute(img, None)
@@ -39,46 +40,46 @@ flann = cv.FlannBasedMatcher(index_params, search_params)
 
 while True:
     _, frame = cap.read()
-
+    
     grayframe = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
     kp_grayframe, desk_grayframe = sift.detectAndCompute(grayframe, None)
-
+    
     matches = flann.knnMatch(desk_img, desk_grayframe, k=2)
-
+    
     good = []
-
+    
     for m, n in matches:
         if m.distance < 0.6 * n.distance:
             good.append(m)
 
-    # img3 = cv.drawMatches(img, kp_img, grayframe, kp_grayframe, good, grayframe)
+# img3 = cv.drawMatches(img, kp_img, grayframe, kp_grayframe, good, grayframe)
 
-    # grayframe = cv.drawKeypoints(grayframe, kp_grayframe, grayframe)
+# grayframe = cv.drawKeypoints(grayframe, kp_grayframe, grayframe)
 
-    # cv.namedWindow('Image', cv.WINDOW_NORMAL)
+# cv.namedWindow('Image', cv.WINDOW_NORMAL)
 
-    # hompgraphy
+# hompgraphy
 
     if len(good) > 10:
         qr_pts = np.float32([kp_img[m.queryIdx].pt for m in good]).reshape(-1, 1, 2)
         tr_pts = np.float32([kp_grayframe[m.trainIdx].pt for m in good]).reshape(-1, 1, 2)
-
+    
         mat, masc = cv.findHomography(qr_pts, tr_pts, cv.RANSAC, 5.0)
-        matches_mask = masc.raval().tolist()
-
+        matches_mask = masc.ravel().tolist()
+        
         h, w = img.shape
         pts = np.float32([[0, 0], [0, h, ], [w, h], [w, 0]]).reshape(-1, 1, 2)
         dst = cv.perspectiveTransform(pts, mat)
-
+        
         homo = cv.polylines(frame, [np.int32(dst)], True, (255, 0, 0), 3)
         frame = homo
     else:
         frame = grayframe
-
+    
     cv.imshow('Video_cap', frame)
     if args['output'] != None:
         out.write(frame)
-
+    
     key = cv.waitKey(1)
 
     if key > 1:
