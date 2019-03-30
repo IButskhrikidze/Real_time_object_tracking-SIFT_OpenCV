@@ -4,8 +4,8 @@ import argparse
 import time
 
 #this programm works only for opencv3
-(major_ver, minor_ver, subminor_ver) = (cv2.__version__).split('.')
-if major_ver != '4':
+(major_ver, minor_ver, subminor_ver) = (cv.__version__).split('.')
+if major_ver != '3':
     print('please install opencv3 and then run program')
     exit(0)
 
@@ -42,6 +42,7 @@ if args['output'] != None:
 
         seconds = end - start
         fps = num_frames // seconds
+    print(fps)
     out = cv.VideoWriter(args['output'], cv.VideoWriter_fourcc('M', 'J', 'P', 'G'), fps, (frame_width, frame_height))
 
 #create sift and detect key points and descriptions
