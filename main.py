@@ -97,5 +97,6 @@ while True:
         break
 
 cap.release()
-out.release()
+if args['output'] != None:
+    out.release()
 cv.destroyAllWindows()
