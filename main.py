@@ -39,7 +39,9 @@ search_params = dict()
 flann = cv.FlannBasedMatcher(index_params, search_params)
 
 while True:
-    _, frame = cap.read()
+    ret, frame = cap.read()
+    if !ret:
+        break
     
     grayframe = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
     kp_grayframe, desk_grayframe = sift.detectAndCompute(grayframe, None)
@@ -51,12 +53,6 @@ while True:
     for m, n in matches:
         if m.distance < 0.6 * n.distance:
             good.append(m)
-
-# img3 = cv.drawMatches(img, kp_img, grayframe, kp_grayframe, good, grayframe)
-
-# grayframe = cv.drawKeypoints(grayframe, kp_grayframe, grayframe)
-
-# cv.namedWindow('Image', cv.WINDOW_NORMAL)
 
 # hompgraphy
 
