@@ -40,7 +40,7 @@ flann = cv.FlannBasedMatcher(index_params, search_params)
 
 while True:
     ret, frame = cap.read()
-    if !ret:
+    if ret == False:
         break
     
     grayframe = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
